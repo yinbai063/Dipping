@@ -1,0 +1,96 @@
+<Window x:Class="Dipping.WPF.Views.CameraMonitorWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:views="clr-namespace:Dipping.WPF.Views"
+        Title="相机监控"
+        Height="644" Width="980"
+        MinHeight="480" MinWidth="720"
+        WindowStartupLocation="CenterOwner"
+        Background="#FFF5F5F5">
+    <Window.Resources>
+        <DataTemplate x:Key="CameraPaneTemplate">
+            <DockPanel>
+                <Border DockPanel.Dock="Top" Background="#FFF7F0E8" Padding="8,6"
+                        BorderBrush="#FFE0C8A0" BorderThickness="1,1,1,0">
+                    <views:CameraLoginBar/>
+                </Border>
+                <views:CameraImagePanel/>
+            </DockPanel>
+        </DataTemplate>
+    </Window.Resources>
+    <Grid Margin="7">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*" MinHeight="140"/>
+            <RowDefinition Height="6"/>
+            <RowDefinition Height="84" MinHeight="40"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Background="White" BorderBrush="#FFCCCCCC" BorderThickness="1"
+                Padding="10,8" Margin="0,0,0,10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Button Grid.Column="0" Content="查找相机" Width="100" Height="30" Margin="0,0,10,0"
+                        Command="{Binding FindCamerasCommand}"
+                        ToolTip="重新枚举网上相机。打开本窗口时也会自动搜一次。"/>
+                <TextBlock Grid.Column="1" Text="{Binding SdkVersionText}" VerticalAlignment="Center"
+                           FontWeight="SemiBold" Foreground="#FF2D5F8B" Margin="0,0,12,0"/>
+                <TextBlock Grid.Column="2" Text="{Binding StatusMessage}" VerticalAlignment="Center"
+                           TextWrapping="Wrap" Foreground="{Binding StatusMessageBrush}"/>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" MinWidth="200"/>
+                <ColumnDefinition Width="6"/>
+                <ColumnDefinition Width="*" MinWidth="200"/>
+            </Grid.ColumnDefinitions>
+            <ContentControl Grid.Column="0" Content="{Binding LeftCamera}"
+                            ContentTemplate="{StaticResource CameraPaneTemplate}"/>
+            <GridSplitter Grid.Column="1" Width="6" HorizontalAlignment="Stretch"
+                          ResizeDirection="Columns" Background="#FFC8C8C8" Cursor="SizeWE"
+                          ToolTip="拖动以调整左右相机宽度"/>
+            <ContentControl Grid.Column="2" Content="{Binding RightCamera}"
+                            ContentTemplate="{StaticResource CameraPaneTemplate}"/>
+        </Grid>
+
+        <GridSplitter Grid.Row="2" Height="6" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                      ResizeDirection="Rows" Background="#FFC8C8C8" Cursor="SizeNS"
+                      ToolTip="拖动以调整画面与调试日志的高度"/>
+
+        <Border Grid.Row="3" BorderBrush="#FFCCCCCC" BorderThickness="1" Background="White">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Border Grid.Row="0" Background="#FFE0E0E0" Padding="8,5">
+                    <DockPanel>
+                        <Button DockPanel.Dock="Right" Content="复制日志" Width="80" Height="24"
+                                Command="{Binding CopyLogCommand}"/>
+                        <TextBlock Text="调试日志（可全选复制）" FontWeight="Bold" VerticalAlignment="Center"/>
+                    </DockPanel>
+                </Border>
+                <TextBox x:Name="DebugLogBox" Grid.Row="1"
+                         Text="{Binding LogText, Mode=OneWay}"
+                         IsReadOnly="True" AcceptsReturn="True" TextWrapping="NoWrap"
+                         VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
+                         FontFamily="Consolas" FontSize="12" BorderThickness="0"/>
+            </Grid>
+        </Border>
+
+        <DockPanel Grid.Row="4" Margin="0,8,0,0">
+            <Button DockPanel.Dock="Right" Content="关闭" Width="80" Height="30" IsCancel="True"
+                    ToolTip="与右上角 × 相同：只关本窗口。不登出、不停 Live。"
+                    Click="Close_Click"/>
+            <TextBlock VerticalAlignment="Center" Foreground="#FF666666" TextWrapping="Wrap"
+                       Text="「关闭」和右上角 × 一样，只关窗口不登出。录像到时自动停并回到 Live。勾选自动录像后等触发信号开录。"/>
+        </DockPanel>
+    </Grid>
+</Window>

@@ -1,0 +1,11 @@
+bin/
+obj/
+.vs/
+*.user
+*.suo
+publish/
+packages/
+.cursor/
+_build_*/
+Logs/
+Data/

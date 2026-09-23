@@ -1,0 +1,157 @@
+<UserControl x:Class="Dipping.WPF.Views.CameraLoginBar"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:conv="clr-namespace:Dipping.WPF.Converters">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+        <conv:InverseBooleanConverter x:Key="InverseBool"/>
+        <ControlTemplate x:Key="BarButtonTemplate" TargetType="Button">
+            <Border x:Name="Bd"
+                    Background="{TemplateBinding Background}"
+                    BorderThickness="0" CornerRadius="2"
+                    Padding="{TemplateBinding Padding}"
+                    Opacity="1">
+                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+            <ControlTemplate.Triggers>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter TargetName="Bd" Property="Background" Value="#FFC5C5C5"/>
+                    <Setter TargetName="Bd" Property="Opacity" Value="0.7"/>
+                    <Setter Property="Foreground" Value="#FFF3F3F3"/>
+                </Trigger>
+            </ControlTemplate.Triggers>
+        </ControlTemplate>
+        <Style x:Key="BarButton" TargetType="Button">
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="Margin" Value="0,0,6,4"/>
+            <Setter Property="Padding" Value="8,0"/>
+            <Setter Property="MinWidth" Value="56"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Background" Value="#FF2D5F8B"/>
+            <Setter Property="Template" Value="{StaticResource BarButtonTemplate}"/>
+        </Style>
+    </UserControl.Resources>
+    <StackPanel>
+        <WrapPanel>
+            <ComboBox Width="76" Height="28" Margin="0,0,6,4"
+                      ItemsSource="{Binding DataContext.UserNameOptions, RelativeSource={RelativeSource AncestorType=Window}}"
+                      Text="{Binding UserName, UpdateSourceTrigger=PropertyChanged}"
+                      IsEditable="True"
+                      IsEnabled="{Binding IsLoggedIn, Converter={StaticResource InverseBool}}"
+                      ToolTip="本相机登录用户名，与另一台独立"/>
+            <Grid Width="88" Height="28" Margin="0,0,6,4">
+                <PasswordBox x:Name="LoginPasswordBox"
+                             PasswordChanged="LoginPasswordBox_OnPasswordChanged"
+                             VerticalContentAlignment="Center"
+                             Padding="6,0"
+                             IsEnabled="{Binding IsLoggedIn, Converter={StaticResource InverseBool}}">
+                    <PasswordBox.Style>
+                        <Style TargetType="PasswordBox">
+                            <Setter Property="Visibility" Value="Visible"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding ShowPassword}" Value="True">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </PasswordBox.Style>
+                </PasswordBox>
+                <TextBox Text="{Binding Password, UpdateSourceTrigger=PropertyChanged}"
+                         VerticalContentAlignment="Center"
+                         Padding="6,0"
+                         IsEnabled="{Binding IsLoggedIn, Converter={StaticResource InverseBool}}"
+                         Visibility="{Binding ShowPassword, Converter={StaticResource BoolToVis}}"/>
+            </Grid>
+            <ToggleButton Content="显示" Width="44" Height="28" Margin="0,0,6,4"
+                          IsChecked="{Binding ShowPassword}"/>
+            <CheckBox Content="记住" VerticalAlignment="Center" Margin="0,0,10,4"
+                      IsChecked="{Binding RememberPassword}"
+                      ToolTip="仅记住这一台的密码"/>
+            <Button Content="{Binding LoginButtonText}"
+                    Width="56" Height="28" Margin="0,0,6,4" FontWeight="Bold"
+                    ToolTip="未登录点登录；已登录点登出。左右相机互不影响。关监控窗不登出。"
+                    Command="{Binding DataContext.ToggleLoginCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                    CommandParameter="{Binding}">
+                <Button.Style>
+                    <Style TargetType="Button" BasedOn="{StaticResource BarButton}">
+                        <Setter Property="Background" Value="#FF2D5F8B"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsLoggedIn}" Value="True">
+                                <Setter Property="Background" Value="#FF4CAF50"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
+            <TextBlock VerticalAlignment="Center" Margin="8,0,0,4" FontWeight="SemiBold"
+                       Text="{Binding Status}"
+                       Foreground="{Binding StatusBrush}"
+                       TextWrapping="Wrap"/>
+        </WrapPanel>
+        <WrapPanel>
+            <Button Content="{Binding LiveButtonText}"
+                    Width="76" Height="28" Margin="0,0,6,4" FontWeight="Bold"
+                    ToolTip="本相机 Live。登录后自动开。停预览不登出，画面停在最后一帧。"
+                    Command="{Binding DataContext.ToggleLiveForCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                    CommandParameter="{Binding}">
+                <Button.Style>
+                    <Style TargetType="Button" BasedOn="{StaticResource BarButton}">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsLive}" Value="True">
+                                <Setter Property="Background" Value="#FF4CAF50"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
+            <Button Content="录像"
+                    Width="56" Height="28" Margin="0,0,6,4" FontWeight="Bold"
+                    ToolTip="只录这一台。时长在配置「录像时长」。勾了自动录像后禁用。不影响另一台。"
+                    Command="{Binding DataContext.ToggleRecordForCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                    CommandParameter="{Binding}"
+                    Style="{StaticResource BarButton}"/>
+            <Button Content="停止录像"
+                    Width="72" Height="28" Margin="0,0,6,4" FontWeight="Bold"
+                    ToolTip="只停这一台的录像，不影响另一台。到时也会自动停。"
+                    Command="{Binding DataContext.StopRecordForCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                    CommandParameter="{Binding}">
+                <Button.Style>
+                    <Style TargetType="Button" BasedOn="{StaticResource BarButton}">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsRecording}" Value="True">
+                                <Setter Property="Background" Value="#FFC0392B"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
+            <CheckBox Content="自动录像"
+                      VerticalAlignment="Center"
+                      Margin="4,0,10,4"
+                      IsChecked="{Binding AutoRecord}"
+                      ToolTip="仅本相机。勾选后本相机等 TCP/PLC 触发开录。左右互不影响。"/>
+            <Button Content="拍照"
+                    Width="56" Height="28" Margin="0,0,6,4"
+                    ToolTip="Live 中抓当前 JPEG 直接保存（很快）；未 Live 则主动拍一张再保存。"
+                    Command="{Binding DataContext.GrabPhotoCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                    CommandParameter="{Binding}"
+                    Style="{StaticResource BarButton}"/>
+            <Button Content="{Binding BurstButtonText}"
+                    Width="72" Height="28" Margin="0,0,6,4" FontWeight="Bold"
+                    ToolTip="Live 中有图就存 JPEG，不改相机模式。勾了「最快」则每来一帧存一张。未 Live 则主动拍。再点停止。"
+                    Command="{Binding DataContext.ToggleBurstCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                    CommandParameter="{Binding}">
+                <Button.Style>
+                    <Style TargetType="Button" BasedOn="{StaticResource BarButton}">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsBursting}" Value="True">
+                                <Setter Property="Background" Value="#FFE67E22"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
+        </WrapPanel>
+    </StackPanel>
+</UserControl>
