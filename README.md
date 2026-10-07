@@ -1,9 +1,12 @@
-# Dipping 通道录像
+# Dipping Monitor（通道录像）
 
-独立程序，**不并入 NCM Monitor**。左右两台与 NCM 同型号的海康 SCMVS 智能相机，Live 下录一段 dipping 视频，供人眼检查 10 个通道。二期再自动判断堵塞。
+独立程序，**不并入 NCM Monitor**。主界面与窗口标题为 **「Dipping Monitor」**。左右两台与 NCM 同型号的海康 SCMVS 智能相机，Live 下录一段 dipping 视频，供人眼检查 10 个通道。二期再自动判断堵塞。
 
 **工程目录：** `E:\yb2\软件开发\Dipping`  
+**最近 commit：** 执行 `git log -1 --oneline` 查看。  
 **不要和正在跑的 NCM、官方 SCMVS 同时登录同一台相机。** 默认 IP：左 `192.168.2.50`、右 `192.168.2.51`（NCM 产线相机是 `.100` / `.101`）。
+
+**应用图标：** `Dipping.WPF/Assets/app.ico`（绿底白字 YB，多尺寸 ICO；`ApplicationIcon` + 各窗口 `Icon="/Assets/app.ico"`）。
 
 一期录像与 TCP 触发已按当前约定实现。关程序须用窗口关闭（不要用 VS「停止调试」），以便写回相机触发并停跑。
 
@@ -42,7 +45,8 @@
 dotnet build Dipping.sln
 ```
 
-输出：`Dipping.WPF\bin\Debug\net8.0-windows\Dipping.exe`
+输出：`Dipping.WPF\bin\Debug\net8.0-windows\Dipping.exe`  
+发布配置：`Dipping.WPF/Properties/PublishProfiles/FolderProfile.pubxml`（自包含单文件 x64；`PublishDir` 可按本机修改）
 
 **VS2022：** 打开 `Dipping.sln`，启动项目设为 **Dipping.WPF**，再 F5。不要对 `Dipping.Core` 按 F5。
 
@@ -118,3 +122,11 @@ Dipping/
 ```
 
 与 NCM 无项目引用。SDK DLL 从 NCM 工程复制了一份，改 Dipping 不会动 NCM 源码。
+
+---
+
+## Git 说明
+
+- **commit** = 给当前代码拍快照；改文件保存 ≠ commit，需 `git add` + `git commit`
+- 重要里程碑请 commit；推远程需 `git push`（若配置了 remote）
+- **最近 commit：** `git log -1 --oneline`

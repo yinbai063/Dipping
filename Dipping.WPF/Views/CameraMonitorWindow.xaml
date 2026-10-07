@@ -5,6 +5,7 @@
         Title="相机监控"
         Height="644" Width="980"
         MinHeight="480" MinWidth="720"
+        Icon="/Assets/app.ico"
         WindowStartupLocation="CenterOwner"
         Background="#FFF5F5F5">
     <Window.Resources>
