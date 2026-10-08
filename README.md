@@ -3,7 +3,7 @@
 独立程序，**不并入 NCM Monitor**。主界面与窗口标题为 **「Dipping Monitor」**。左右两台与 NCM 同型号的海康 SCMVS 智能相机，Live 下录一段 dipping 视频，供人眼检查 10 个通道。二期再自动判断堵塞。
 
 **工程目录：** `E:\yb2\软件开发\Dipping`  
-**最近 commit：** `9040208` — 连拍中可点「停止连拍」（`c93a897`）、README 一期/二期说明。  
+**最近 commit：** `508f91b` — 连拍中可点「停止连拍」（`c93a897`）、README 一期/二期说明。  
 **不要和正在跑的 NCM、官方 SCMVS 同时登录同一台相机。** 默认 IP：左 `192.168.2.50`、右 `192.168.2.51`（NCM 产线相机是 `.100` / `.101`）。
 
 **应用图标：** `Dipping.WPF/Assets/app.ico`（绿底白字 YB，多尺寸 ICO；`ApplicationIcon` + 各窗口 `Icon="/Assets/app.ico"`）。
@@ -195,4 +195,4 @@ Dipping/
 
 - **commit** = 给当前代码拍快照；改文件保存 ≠ commit，需 `git add` + `git commit`
 - 重要里程碑请 commit；推远程需 `git push`（若配置了 remote）
-- **最近 commit：** `9040208` — 连拍中可点「停止连拍」（`c93a897`）、README 一期/二期说明
+- **最近 commit：** `508f91b` — 连拍中可点「停止连拍」（`c93a897`）、README 一期/二期说明
