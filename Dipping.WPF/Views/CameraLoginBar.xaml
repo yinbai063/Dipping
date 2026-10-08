@@ -139,9 +139,10 @@
                     Style="{StaticResource BarButton}"/>
             <Button Content="{Binding BurstButtonText}"
                     Width="72" Height="28" Margin="0,0,6,4" FontWeight="Bold"
-                    ToolTip="Live 中有图就存 JPEG，不改相机模式。勾了「最快」则每来一帧存一张。未 Live 则主动拍。再点停止。"
+                    ToolTip="Live 中有图就存 JPEG，不改相机模式。勾了「最快」则每来一帧存一张。未 Live 则主动拍。连拍中再点同一按钮停止。"
                     Command="{Binding DataContext.ToggleBurstCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                    CommandParameter="{Binding}">
+                    CommandParameter="{Binding}"
+                    IsEnabled="{Binding CanToggleBurst}">
                 <Button.Style>
                     <Style TargetType="Button" BasedOn="{StaticResource BarButton}">
                         <Style.Triggers>

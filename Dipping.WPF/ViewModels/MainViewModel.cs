@@ -541,9 +541,9 @@ namespace Dipping.WPF.ViewModels
         }
 
         private bool CanToggleBurst(CameraPaneViewModel? camera) =>
-            camera != null && camera.IsLoggedIn && !camera.IsBusy;
+            camera != null && camera.CanToggleBurst;
 
-        [RelayCommand(CanExecute = nameof(CanToggleBurst))]
+        [RelayCommand(CanExecute = nameof(CanToggleBurst), AllowConcurrentExecutions = true)]
         private async Task ToggleBurstAsync(CameraPaneViewModel? camera)
         {
             if (camera == null)
@@ -551,6 +551,7 @@ namespace Dipping.WPF.ViewModels
             if (camera.IsBursting)
             {
                 CancelBurst(camera.Ip);
+                StatusMessage = $"{camera.Name} 正在停止连拍…";
                 return;
             }
 

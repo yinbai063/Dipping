@@ -15,6 +15,7 @@ namespace Dipping.WPF.ViewModels
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(LoginButtonText))]
+        [NotifyPropertyChangedFor(nameof(CanToggleBurst))]
         private bool _isLoggedIn;
 
         [ObservableProperty]
@@ -28,6 +29,7 @@ namespace Dipping.WPF.ViewModels
         private bool _isRecording;
 
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(CanToggleBurst))]
         private bool _isBusy;
 
         [ObservableProperty]
@@ -75,6 +77,7 @@ namespace Dipping.WPF.ViewModels
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(BurstButtonText))]
         [NotifyPropertyChangedFor(nameof(ImageStatus))]
+        [NotifyPropertyChangedFor(nameof(CanToggleBurst))]
         private bool _isBursting;
 
         [ObservableProperty]
@@ -93,6 +96,9 @@ namespace Dipping.WPF.ViewModels
         public string RecordButtonText => "录像";
 
         public string BurstButtonText => IsBursting ? "停止连拍" : "连拍";
+
+        /// <summary>连拍中须保持可点，以便再点停止（与 NCM 一致，避免异步命令整段执行期间按钮被禁用）。</summary>
+        public bool CanToggleBurst => IsBursting || (IsLoggedIn && !IsBusy);
 
         public string ImageStatus
         {
