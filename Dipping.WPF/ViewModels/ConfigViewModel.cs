@@ -11,6 +11,7 @@ namespace Dipping.WPF.ViewModels
     {
         private readonly IConfigurationService _config;
         private readonly IAppLogger _logger;
+        private bool _suppressPairFieldClamp;
 
         [ObservableProperty] private string _leftIp = string.Empty;
         [ObservableProperty] private string _rightIp = string.Empty;
@@ -38,6 +39,9 @@ namespace Dipping.WPF.ViewModels
         public IReadOnlyList<string> TriggerSources { get; } =
             new[] { TriggerConfig.SourcePcProgram, TriggerConfig.SourcePlc };
 
+        /// <summary>保存前由配置窗注入：提交文本框（各组先上限、后时长/张数）。</summary>
+        public Action? CommitPendingConfigEdits { get; set; }
+
         public ConfigViewModel(IConfigurationService config, IAppLogger logger)
         {
             _config = config;
@@ -45,20 +49,32 @@ namespace Dipping.WPF.ViewModels
             LoadFromSettings();
         }
 
+        /// <summary>从内存中的 <see cref="IConfigurationService.Current"/> 重新加载（再次打开配置窗时避免仍显示旧快照）。</summary>
+        public void ReloadFromSettings() => LoadFromSettings();
+
         private void LoadFromSettings()
         {
             var s = _config.Current;
             LeftIp = s.Cameras.FirstOrDefault(c => c.Position == "left")?.Ip ?? "192.168.2.50";
             RightIp = s.Cameras.FirstOrDefault(c => c.Position == "right")?.Ip ?? "192.168.2.51";
             var r = s.Record.Normalized();
-            DurationSeconds = r.DurationSeconds;
-            DurationLimitSeconds = r.DurationLimitSeconds;
             LocalFolder = r.LocalFolder;
             ShareFolder = r.ShareFolder;
             var cap = (s.Capture ?? new CaptureConfig()).Normalized();
             PhotoFolder = cap.Folder;
-            BurstCount = cap.BurstCount;
-            BurstCountLimit = cap.BurstCountLimit;
+            _suppressPairFieldClamp = true;
+            try
+            {
+                DurationLimitSeconds = r.DurationLimitSeconds;
+                DurationSeconds = r.DurationSeconds;
+                BurstCountLimit = cap.BurstCountLimit;
+                BurstCount = cap.BurstCount;
+            }
+            finally
+            {
+                _suppressPairFieldClamp = false;
+            }
+
             BurstIntervalMs = cap.BurstIntervalMs;
             BurstFastest = cap.BurstFastest;
             TriggerSource = string.IsNullOrWhiteSpace(s.Trigger.Source)
@@ -84,6 +100,8 @@ namespace Dipping.WPF.ViewModels
         [RelayCommand]
         private async Task SaveAsync()
         {
+            CommitPendingConfigEdits?.Invoke();
+
             if (DurationLimitSeconds < RecordConfig.DurationMinSeconds
                 || DurationLimitSeconds > RecordConfig.DurationHardMaxSeconds)
             {
@@ -125,14 +143,14 @@ namespace Dipping.WPF.ViewModels
             var s = _config.Current;
             EnsureCamera(s, "left", "Camera_Left", "左相机", LeftIp.Trim());
             EnsureCamera(s, "right", "Camera_Right", "右相机", RightIp.Trim());
-            s.Record.DurationSeconds = DurationSeconds;
             s.Record.DurationLimitSeconds = DurationLimitSeconds;
+            s.Record.DurationSeconds = DurationSeconds;
             s.Record.LocalFolder = LocalFolder.Trim();
             s.Record.ShareFolder = ShareFolder.Trim();
             s.Capture ??= new CaptureConfig();
             s.Capture.Folder = PhotoFolder.Trim();
-            s.Capture.BurstCount = BurstCount;
             s.Capture.BurstCountLimit = BurstCountLimit;
+            s.Capture.BurstCount = BurstCount;
             s.Capture.BurstIntervalMs = BurstIntervalMs;
             s.Capture.BurstFastest = BurstFastest;
             s.Trigger.Source = TriggerSource;
@@ -144,12 +162,16 @@ namespace Dipping.WPF.ViewModels
                 Windows = windows
             };
             await _config.SaveAsync();
+            ReloadFromSettings();
             StatusMessage = "已保存。";
             _logger.Info("配置已保存");
         }
 
         partial void OnDurationLimitSecondsChanged(int value)
         {
+            if (_suppressPairFieldClamp)
+                return;
+
             var clamped = value < RecordConfig.DurationMinSeconds
                 ? RecordConfig.DurationMinSeconds
                 : value > RecordConfig.DurationHardMaxSeconds
@@ -167,9 +189,12 @@ namespace Dipping.WPF.ViewModels
 
         partial void OnDurationSecondsChanged(int value)
         {
-            var max = DurationLimitSeconds < RecordConfig.DurationMinSeconds
-                ? RecordConfig.DurationLimitDefaultSeconds
-                : DurationLimitSeconds;
+            if (_suppressPairFieldClamp)
+                return;
+
+            var max = DurationLimitSeconds >= RecordConfig.DurationMinSeconds
+                ? DurationLimitSeconds
+                : RecordConfig.DurationHardMaxSeconds;
             var clamped = value < RecordConfig.DurationMinSeconds
                 ? RecordConfig.DurationMinSeconds
                 : value > max ? max : value;
@@ -179,6 +204,9 @@ namespace Dipping.WPF.ViewModels
 
         partial void OnBurstCountLimitChanged(int value)
         {
+            if (_suppressPairFieldClamp)
+                return;
+
             var clamped = value < CaptureConfig.BurstCountMin
                 ? CaptureConfig.BurstCountMin
                 : value > CaptureConfig.BurstCountHardMax
@@ -196,9 +224,12 @@ namespace Dipping.WPF.ViewModels
 
         partial void OnBurstCountChanged(int value)
         {
-            var max = BurstCountLimit < CaptureConfig.BurstCountMin
-                ? CaptureConfig.BurstCountLimitDefault
-                : BurstCountLimit;
+            if (_suppressPairFieldClamp)
+                return;
+
+            var max = BurstCountLimit >= CaptureConfig.BurstCountMin
+                ? BurstCountLimit
+                : CaptureConfig.BurstCountHardMax;
             var clamped = value < CaptureConfig.BurstCountMin
                 ? CaptureConfig.BurstCountMin
                 : value > max ? max : value;

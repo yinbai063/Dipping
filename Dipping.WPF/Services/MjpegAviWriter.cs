@@ -108,7 +108,7 @@ namespace Dipping.WPF.Services
             var frames = _index.Count;
             var fps = frames <= 0 || durationSeconds < 0.05
                 ? 10.0
-                : Math.Clamp(frames / durationSeconds, 1.0, 30.0);
+                : Math.Max(1.0, frames / durationSeconds);
             var microSec = (int)Math.Round(1_000_000.0 / fps);
             if (microSec < 1)
                 microSec = 1;

@@ -620,7 +620,11 @@ namespace Dipping.WPF.ViewModels
         private void OpenConfig()
         {
             if (ActivateIfOpen(_configWindow))
+            {
+                if (_configWindow?.DataContext is ConfigViewModel existing)
+                    existing.ReloadFromSettings();
                 return;
+            }
 
             var vm = new ConfigViewModel(_config, _logger);
             var window = new ConfigWindow(vm) { Owner = Application.Current?.MainWindow };

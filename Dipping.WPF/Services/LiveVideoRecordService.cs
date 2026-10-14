@@ -181,9 +181,11 @@ namespace Dipping.WPF.Services
             {
                 if (!Sessions.TryGetValue(ip, out var session))
                     return (0, 0, 0, 0);
-                var elapsed = Math.Max(0, (DateTime.UtcNow - session.StartedUtc).TotalSeconds);
+                var wall = Math.Max(0, (DateTime.UtcNow - session.StartedUtc).TotalSeconds);
+                var cap = session.MaxDuration.TotalSeconds;
+                var elapsed = Math.Min(wall, cap);
                 var fps = elapsed > 0.2 ? session.Frames / elapsed : 0;
-                return ((int)elapsed, (int)session.MaxDuration.TotalSeconds, session.Frames, fps);
+                return ((int)elapsed, (int)cap, session.Frames, fps);
             }
         }
 
@@ -194,7 +196,7 @@ namespace Dipping.WPF.Services
             try { session.Worker?.Wait(TimeSpan.FromSeconds(8)); }
             catch { }
 
-            var elapsed = Math.Max(0, (DateTime.UtcNow - session.StartedUtc).TotalSeconds);
+            var elapsed = RecordingWallSeconds(session);
             RaiseStopped(new LiveVideoStopEventArgs
             {
                 Ip = session.Ip,
@@ -250,7 +252,7 @@ namespace Dipping.WPF.Services
             }
             finally
             {
-                var elapsed = Math.Max(0.05, (DateTime.UtcNow - session.StartedUtc).TotalSeconds);
+                var elapsed = Math.Max(0.05, RecordingWallSeconds(session));
                 try { writer?.Finish(elapsed); }
                 catch (Exception ex)
                 {
@@ -260,6 +262,14 @@ namespace Dipping.WPF.Services
 
                 session.Cts.Dispose();
             }
+        }
+
+        /// <summary>用于进度/AVI 帧率：不超过配置的录像时长（避免停录后队列排空把墙钟时间算进成片时长）。</summary>
+        private static double RecordingWallSeconds(Session session)
+        {
+            var wall = Math.Max(0, (DateTime.UtcNow - session.StartedUtc).TotalSeconds);
+            var cap = session.MaxDuration.TotalSeconds;
+            return cap > 0 ? Math.Min(wall, cap) : wall;
         }
 
         private static MjpegAviWriter CreateWriter(Session session, int width, int height)
